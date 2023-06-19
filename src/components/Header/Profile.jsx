@@ -1,102 +1,90 @@
 import Image from "next/image";
-import { useSession, signOut, signIn, getProviders } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { signOut, signIn } from "next-auth/react";
 import PrimaryButton from "@components/Button/PrimaryButton";
 import SecondaryButton from "@components/Button/SecondaryButton";
-import * as RiIcons from "react-icons/ri";
+import { Ri24HoursFill } from "react-icons/ri";
 
-const Profile = ({ profileRef, openProfile }) => {
-  const { data: session, status } = useSession();
-  const [providers, setProviders] = useState(null);
+const Profile = ({ state, session }) => {
+  const { push } = useRouter();
 
-  useEffect(() => {
-    const setAllProviders = async () => {
-      const response = await getProviders();
+  return (
+    <>
+      {state.openProfile &&
+        (session && session?.user ? (
+          <div className="fixed right-0 top-20 z-20 w-56 rounded-xl bg-zinc-700 p-2 py-5 text-center md:right-4 md:w-64">
+            <div className="flex flex-col items-center gap-y-3">
+              <div className="relative h-16 w-16">
+                <Image
+                  src={"/manga/1/thumbnail.jpg"}
+                  fill={true}
+                  sizes="0%"
+                  style={{ borderRadius: "9999px", objectFit: "cover" }}
+                  alt="Profile Avatar"
+                ></Image>
+              </div>
+              <span>{session.user.username}</span>
+              <div className="scrollbar mb-3 flex w-4/5 justify-center overflow-auto">
+                {session.user.badge.length ? (
+                  <div className="flex h-full max-w-fit items-center justify-end gap-x-2 rounded-lg bg-zinc-800 p-2">
+                    {session.user.badge.map((b) => (
+                      <span
+                        key={b.id}
+                        className="relative h-4 w-4 md:h-4 md:w-4"
+                        title={`${b.name}`}
+                      >
+                        <Image
+                          src={b.image}
+                          alt={`${b.name} Badge`}
+                          fill={true}
+                          sizes="0%"
+                        />
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <></>
+                )}
+              </div>
+            </div>
 
-      setProviders(response);
-    };
-
-    setAllProviders();
-  }, []);
-
-  useEffect(() => {
-    if (session?.error === "RefreshAccessTokenError") {
-      signIn();
-    }
-  }, [session]);
-
-  return status === "authenticated" ? (
-    <ul
-      className={`title profile ${openProfile ? "active" : "inactive"}`}
-      ref={profileRef}
-    >
-      <li className="flex justify-center">
-        <Image
-          className="rounded-full"
-          src={session?.user.image}
-          width={70}
-          height={70}
-          alt="Profile avatar"
-        />
-      </li>
-      <li>
-        <h5 className="text-center">{session?.user.name}</h5>
-      </li>
-      <li>
-        <div className="flex justify-center gap-x-4 rounded-md bg-zinc-700 py-2">
-          <RiIcons.Ri24HoursFill />
-          <RiIcons.Ri24HoursFill />
-          <RiIcons.Ri24HoursFill />
-        </div>
-      </li>
-      <li>
-        <PrimaryButton
-          className={"w-full rounded-lg p-2 text-white"}
-          title={"Quản lý truyện"}
-        />
-      </li>
-      <li>
-        <PrimaryButton
-          className="w-full rounded-lg p-2 text-white"
-          title={"Quản lý tài khoản"}
-        />
-      </li>
-      <li>
-        <SecondaryButton
-          className="w-full rounded-lg p-2 text-white"
-          title={"Đăng xuất"}
-          onClick={() => {
-            signOut();
-          }}
-        />
-      </li>
-    </ul>
-  ) : (
-    <ul
-      className={`title profile ${openProfile ? "active" : "inactive"}`}
-      ref={profileRef}
-    >
-      <li>
-        <h5 className="text-center">Khách</h5>
-      </li>
-      <li>
-        <ul className="border-t p-2">
-          <li className="mb-4 text-center">Đăng nhập</li>
-          {providers &&
-            Object.values(providers).map((provider) => (
-              <li key={provider.id}>
-                <PrimaryButton
-                  className={"w-full rounded-lg p-2 text-white"}
-                  title={
-                    provider.id.charAt(0).toUpperCase() + provider.id.slice(1)
-                  }
-                  onClick={() => signIn(provider.id)}
-                />
-              </li>
-            ))}
-        </ul>
-      </li>
-    </ul>
+            <div className="text flex flex-col gap-y-4 border-t pt-6 font-semibold">
+              <PrimaryButton
+                className={"rounded-xl py-2"}
+                onClick={() => push("/me")}
+              >
+                Quản lý
+              </PrimaryButton>
+              <SecondaryButton
+                className={"rounded-xl py-2"}
+                onClick={() => signOut()}
+              >
+                Đăng xuất
+              </SecondaryButton>
+            </div>
+          </div>
+        ) : (
+          <div className="fixed right-0 top-20 z-20 w-56 rounded-xl bg-zinc-700 p-2 py-5 text-center md:right-4 md:w-64">
+            <div className="mb-4">
+              <span className="header_text">Khách</span>
+            </div>
+            <div className="text flex flex-col gap-y-4 border-t pt-6 font-semibold">
+              <PrimaryButton
+                className={"rounded-xl py-2"}
+                onClick={() => signIn()}
+              >
+                Đăng nhập
+              </PrimaryButton>
+              <PrimaryButton
+                className={"rounded-xl py-2"}
+                onClick={() => push("/signUp")}
+              >
+                Đăng ký
+              </PrimaryButton>
+            </div>
+          </div>
+        ))}
+    </>
   );
 };
 

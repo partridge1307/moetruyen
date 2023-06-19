@@ -1,11 +1,11 @@
-const SecondaryButton = ({ title, className, onClick }) => {
+const SecondaryButton = ({ children, className, onClick }) => {
   return (
     <button
-      className={`${className} bg-zinc-500`}
+      className={`${className} bg-zinc-500 transition-colors hover:bg-zinc-400`}
       type="button"
       onClick={onClick}
     >
-      {title}
+      {children}
     </button>
   );
 };

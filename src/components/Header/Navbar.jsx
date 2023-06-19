@@ -1,67 +1,91 @@
 import Link from "next/link";
-import Profile from "./Profile";
-import * as RiIcons from "react-icons/ri";
-import * as RxIcons from "react-icons/rx";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { RiMenuLine, RiSearch2Line } from "react-icons/ri";
+import { RxPerson } from "react-icons/rx";
 
-const Navbar = ({
-  menuRef,
-  profileRef,
-  onOpenSidebar,
-  onOpenSearch,
-  openSearch,
-  onOpenProfile,
-  openProfile,
-}) => {
+const Navbar = ({ dispatch, state }) => {
+  const [Navbar, setNavbar] = useState(false);
+  useEffect(() => {
+    const scrollHandler = () => {
+      if (window.scrollY >= 56) {
+        setNavbar(true);
+      } else {
+        setNavbar(false);
+      }
+    };
+
+    window.addEventListener("scroll", scrollHandler);
+  }, []);
+
   return (
-    <nav className="navbar w-full">
-      <div className={`${openSearch ? "hidden md:flex" : "flex"}`}>
-        <div className="navbar_item header_text">
-          <button className="mr-4" onClick={() => onOpenSidebar(true)}>
-            <RiIcons.RiMenuLine />
-          </button>
-          <Link href={"/"}>Moetruyen</Link>
-        </div>
-      </div>
-      <div className="navbar_item">
-        <div
-          className={`search ${openSearch ? "active" : "inactive"}`}
-          ref={menuRef}
+    <nav className={Navbar ? "navbar active" : "navbar inactive"}>
+      {/* Left Navbar Item */}
+      <div
+        className={
+          state.openSearch ? "hidden items-center md:flex" : "navbar_item"
+        }
+      >
+        <button
+          className="icon mr-4"
+          type="button"
+          onClick={() => dispatch("ACTIVE_SIDEBAR")}
         >
-          <form action={`/search?dwa`} method="get">
+          <RiMenuLine />
+        </button>
+        <Link className="header_text font-bold" href={"/"}>
+          Moetruyen
+        </Link>
+      </div>
+
+      {/* Right Navbar Item */}
+      <div
+        className={
+          state.openSearch
+            ? "max-sm:flex-grow md:flex md:items-center"
+            : "navbar_item"
+        }
+      >
+        <div className="relative" onClick={() => dispatch("ACTIVE_SEARCH")}>
+          <form action="/search?query" method="post">
             <input
-              className="search_input"
+              className={state.openSearch ? "search active" : "search"}
               type="text"
-              name="query"
-              placeholder="Tìm Kiếm"
-              onClick={() => onOpenSearch(true)}
+              name="search"
+              placeholder="Tìm kiếm"
             />
-            <i
-              className={`search_icon ${openSearch ? "active" : ""}`}
-              onClick={() => onOpenSearch(true)}
-            >
-              <RiIcons.RiSearch2Line />
+            <i className="search_icon">
+              <RiSearch2Line />
             </i>
+            <div
+              className={
+                state.openSearch ? "search_result" : "search_result hidden"
+              }
+            >
+              <div className="flex gap-x-4">
+                <Image
+                  src="/manga/1/thumbnail.jpg"
+                  height={60}
+                  width={60}
+                  alt="Search Result Thumbnail"
+                />
+                <div className="grid">
+                  <span>Renri no Eda</span>
+                  <span>Asagi Iori</span>
+                </div>
+              </div>
+            </div>
           </form>
-          <ul
-            className={`${openSearch ? "flex" : "hidden"} search_result title`}
-          >
-            <li>Search result 1</li>
-            <li>Search result 2</li>
-            <li>Search result 3</li>
-          </ul>
         </div>
-        <div className="relative" ref={profileRef}>
-          <button
-            className={`${
-              openSearch ? "hidden md:inline-block" : "inline-block"
-            } header_text`}
-            type="button"
-            onClick={() => onOpenProfile(true)}
-          >
-            <RxIcons.RxPerson />
-          </button>
-          <Profile profileRef={profileRef} openProfile={openProfile} />
-        </div>
+        <button
+          className={
+            state.openSearch ? "icon hidden md:ml-4 md:block" : "icon ml-4"
+          }
+          type="button"
+          onClick={() => dispatch("ACTIVE_PROFILE")}
+        >
+          <RxPerson />
+        </button>
       </div>
     </nav>
   );
