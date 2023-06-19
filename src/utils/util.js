@@ -1,6 +1,6 @@
 // Convert Base64 to Blob, remove size
-const b64toBlob = (b64ImagesData, sliceSize = 512) => {
-  const byteCharacters = atob(b64ImagesData);
+const b64toBlob = (b64Data, sliceSize = 512) => {
+  const byteCharacters = atob(b64Data);
   const byteArrays = [];
   for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
     const slice = byteCharacters.slice(offset, offset + sliceSize);
@@ -14,25 +14,6 @@ const b64toBlob = (b64ImagesData, sliceSize = 512) => {
 
   const blob = new Blob(byteArrays, { type: "image" });
   return blob;
-};
-
-// Resiez Image to increase bandwidth
-const resizeImage = (data) => {
-  return new Promise((r) => {
-    let dst, ctx, width, _data;
-    let img = new Image();
-    img.src = data;
-    img.onload = () => {
-      width = 300;
-      dst = document.createElement("canvas");
-      ctx = dst.getContext("2d");
-      dst.width = width;
-      dst.height = (img.height * width) / img.width;
-      ctx.drawImage(img, 0, 0, dst.width, dst.height);
-      _data = dst.toDataURL();
-      r(_data);
-    };
-  });
 };
 
 export const timeDistance = (date1, date2, type) => {
@@ -59,17 +40,20 @@ export const formatTime = (date) => {
   return `${hours}h ${day}/${month}/${year}`;
 };
 
+// Must be an array
 export const sendToDisc = async (base64Images) => {
-  let data = await resizeImage(base64Images);
-  let b64 = data.split(",")[1];
-
-  const image = b64toBlob(b64);
+  let images = [];
+  for (const b64Image of base64Images) {
+    if (b64Image) {
+      const b64 = b64Image.split(",")[1];
+      images.push(b64toBlob(b64));
+    }
+  }
 
   const headers = new Headers();
   const formData = new FormData();
-
-  formData.append("file", image, "image.png");
-  formData.append("payload_json", JSON.stringify({ content: "Image" }));
+  images.map((img, i) => formData.append(`file-${i}`, img, `${i}.png`));
+  // formData.append("payload_json", JSON.stringify({ content: "image" })); content message
 
   const response = await fetch(process.env.DISCORD_WH, {
     method: "POST",
@@ -79,4 +63,23 @@ export const sendToDisc = async (base64Images) => {
   }).catch((e) => console.log(e));
 
   return response.text();
+};
+
+// Resiez Image
+export const resizeImage = (data) => {
+  return new Promise((r) => {
+    let dst, ctx, width, _data;
+    let img = new Image();
+    img.src = data;
+    img.onload = () => {
+      width = 300;
+      dst = document.createElement("canvas");
+      ctx = dst.getContext("2d");
+      dst.width = width;
+      dst.height = (img.height * width) / img.width;
+      ctx.drawImage(img, 0, 0, dst.width, dst.height);
+      _data = dst.toDataURL();
+      r(_data);
+    };
+  });
 };
