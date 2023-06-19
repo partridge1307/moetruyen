@@ -1,4 +1,3 @@
-import NextNTopLoader from "nextjs-toploader";
 import Provider from "@components/Provider";
 import { Inter } from "next/font/google";
 import "@styles/globals.css";
@@ -13,8 +12,9 @@ export const metadata = {
 const Layout = ({ children }) => {
   return (
     <html lang="vi">
-      <body className={inter.className}>
-        <NextNTopLoader color="#506DE4" showSpinner={false} />
+      <body
+        className={`${inter.className} h-screen overflow-y-auto bg-zinc-800 text-white`}
+      >
         <Provider>{children}</Provider>
       </body>
     </html>

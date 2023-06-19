@@ -1,14 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
-import * as HiIcons from "react-icons/hi";
-import * as RxIcons from "react-icons/rx";
-import * as BsIcons from "react-icons/bs";
-import * as SlIcon from "react-icons/sl";
+import { HiOutlineHome } from "react-icons/hi";
+import { RxBookmark } from "react-icons/rx";
+import { BsBook, BsPin } from "react-icons/bs";
+import { SlPeople } from "react-icons/sl";
 
 const menus = [
   {
     title: "Theo dõi",
-    icon: <RxIcons.RxBookmark />,
+    icon: <RxBookmark />,
     subMenu: [
       {
         title: "Truyện",
@@ -22,7 +22,7 @@ const menus = [
   },
   {
     title: "Truyện",
-    icon: <BsIcons.BsBook />,
+    icon: <BsBook />,
     subMenu: [
       {
         title: "Tìm kiếm nâng cao",
@@ -44,7 +44,7 @@ const menus = [
   },
   {
     title: "Cộng đồng",
-    icon: <SlIcon.SlPeople />,
+    icon: <SlPeople />,
     subMenu: [
       {
         title: "Forum",
@@ -58,7 +58,7 @@ const menus = [
   },
   {
     title: "Moetruyen",
-    icon: <BsIcons.BsPin />,
+    icon: <BsPin />,
     subMenu: [
       {
         title: "Điều khoản",
@@ -72,20 +72,16 @@ const menus = [
   },
 ];
 
-const Sidebar = ({ openSidebar, sidebarRef }) => {
+const Sidebar = ({ state }) => {
   return (
     <aside
-      className={`sidebar ${openSidebar ? "active" : "inactive"}`}
-      ref={sidebarRef}
+      className={state.openSidebar ? "sidebar active" : "sidebar inactive"}
     >
-      <Link className="header_text w-full text-center" href={"/"}>
-        Moetruyen
-      </Link>
-      <ul className="sidebar_menu">
+      <ul className="w-full space-y-4">
         <li>
           <Link className="sidebar_item title focus:bg-[#506DE4]" href={"/"}>
             <i className="icon mr-2">
-              <HiIcons.HiOutlineHome />
+              <HiOutlineHome />
             </i>
             Trang chủ
           </Link>
@@ -97,7 +93,7 @@ const Sidebar = ({ openSidebar, sidebarRef }) => {
               <span>{menu.title}</span>
             </div>
             {menu.subMenu && (
-              <ul className="sidebar_subItem">
+              <ul className="flex w-full flex-col gap-2">
                 {menu.subMenu.map((sub) => (
                   <li key={sub.title}>
                     <Link
@@ -113,7 +109,7 @@ const Sidebar = ({ openSidebar, sidebarRef }) => {
           </li>
         ))}
       </ul>
-      <div className="mt-8 flex flex-col gap-y-4 border-t p-8">
+      <div className="mt-8 flex flex-col gap-y-4 border-t p-4">
         <div className="flex items-center justify-center gap-x-4">
           <Link href={"https://www.facebook.com/Bfangteam/"} target="_blank">
             <Image

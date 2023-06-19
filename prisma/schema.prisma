@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User
+model User {
+  id          Int                   @id @default(autoincrement())
+  email       String                @unique
+  username    String                @unique
+  image       String?
+  banner      String?
+  badge       Badge[]
+  password    String
+  owner       Guild?                @relation("ownerGuild")
+  guild       MemberInGuild[]
+  guildFollow GuildFollowedByUser[]
+  MangaFollow MangaFollowedByUser[]
+  manga       Manga[]
+  comment     Comment[]
+  subComment  SubComment[]
+  createdAt   DateTime              @default(now())
+
+  @@index([email])
+  @@index([username])
+}
+
+// Badge
+model Badge {
+  id    Int    @id @default(autoincrement())
+  name  String
+  image String
+  color String
+  user  User[]
+}
+
+// Guild
+model Guild {
+  id      Int                   @id @default(autoincrement())
+  name    String
+  image   String
+  ownerId Int                   @unique
+  member  MemberInGuild[]
+  follow  GuildFollowedByUser[]
+  manga   MangaInGuild[]
+
+  user User @relation("ownerGuild", fields: [ownerId], references: [id])
+
+  @@index([name])
+}
+
+model MemberInGuild {
+  memberId Int
+  guildId  Int
+
+  user  User  @relation(fields: [memberId], references: [id])
+  guild Guild @relation(fields: [guildId], references: [id])
+
+  @@id([memberId, guildId])
+}
+
+model GuildFollowedByUser {
+  userId  Int
+  guildId Int
+
+  user  User  @relation(fields: [userId], references: [id])
+  guild Guild @relation(fields: [guildId], references: [id])
+
+  @@id([userId, guildId])
+}
+
+model MangaInGuild {
+  mangaId Int
+  guidId  Int
+
+  manga Manga @relation(fields: [mangaId], references: [id])
+  guild Guild @relation(fields: [guidId], references: [id])
+
+  @@id([mangaId, guidId])
+}
+
+// Manga
+model Manga {
+  id           Int                   @id @default(autoincrement())
+  thumbnail    String
+  name         String
+  description  String
+  author       String
+  tag          Tag[]
+  publishedBy  Int
+  chapter      Chapter[]
+  guild        MangaInGuild[]
+  userFollowed MangaFollowedByUser[]
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  user User @relation(fields: [publishedBy], references: [id])
+
+  @@index([name])
+  @@index([author])
+}
+
+model Chapter {
+  id        Int       @id @default(autoincrement())
+  chapNum   Int
+  name      String?
+  view      Int       @default(0)
+  mangaId   Int
+  path      String
+  comment   Comment[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  manga Manga @relation(fields: [mangaId], references: [id])
+}
+
+model MangaFollowedByUser {
+  userId  Int
+  mangaId Int
+
+  user  User  @relation(fields: [userId], references: [id])
+  manga Manga @relation(fields: [mangaId], references: [id])
+
+  @@id([userId, mangaId])
+}
+
+// Tag
+model Tag {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String
+  manga       Manga[]
+}
+
+// Comment
+model Comment {
+  id           Int          @id @default(autoincrement())
+  chapterId    Int
+  userId       Int
+  content      String
+  like         Int          @default(0)
+  dislike      Int          @default(0)
+  subCommentId SubComment[]
+  isDeleted    Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id])
+  chapter Chapter @relation(fields: [chapterId], references: [id])
+}
+
+model SubComment {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  commentId Int
+  content   String
+  isDeleted Boolean @default(false)
+
+  user    User    @relation(fields: [userId], references: [id])
+  comment Comment @relation(fields: [commentId], references: [id])
+}

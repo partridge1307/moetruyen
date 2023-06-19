@@ -1,28 +1,60 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useReducer } from "react";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
+import Profile from "./Profile";
 
-const Header = () => {
-  const [openSearch, setOpenSearch] = useState(false);
-  const [openSidebar, setOpenSidebar] = useState(false);
-  const [openProfile, setOpenProfile] = useState(false);
+//Bug shadow
+const reducer = (state, action) => {
+  if (action === "ACTIVE_SEARCH") {
+    return {
+      openSearch: true,
+      openSidebar: false,
+      openProfile: false,
+      openShadow: true,
+    };
+  }
+  if (action === "ACTIVE_SIDEBAR") {
+    return {
+      openSearch: false,
+      openSidebar: !state.openSidebar,
+      openProfile: false,
+      openShadow: true,
+    };
+  }
+  if (action === "ACTIVE_PROFILE") {
+    return {
+      openSearch: false,
+      openSidebar: false,
+      openProfile: !state.openProfile,
+      openShadow: true,
+    };
+  }
+  if (action === "INACTIVE_SHADOW") {
+    return {
+      openSearch: false,
+      openSidebar: false,
+      openProfile: false,
+      openShadow: false,
+    };
+  }
+  throw Error("Unknown action");
+};
 
-  const menuRef = useRef();
-  const sidebarRef = useRef();
-  const profileRef = useRef();
+const Header = ({ session }) => {
+  const shadowRef = useRef();
+  const [state, dispatch] = useReducer(reducer, {
+    openSearch: false,
+    openSidebar: false,
+    openProfile: false,
+    openShadow: false,
+  });
 
   useEffect(() => {
     const handler = (e) => {
-      if (!menuRef.current.contains(e.target)) {
-        setOpenSearch(false);
-      }
-      if (!sidebarRef.current.contains(e.target)) {
-        setOpenSidebar(false);
-      }
-      if (!profileRef.current.contains(e.target)) {
-        setOpenProfile(false);
+      if (shadowRef.current.contains(e.target)) {
+        dispatch("INACTIVE_SHADOW");
       }
     };
 
@@ -31,20 +63,21 @@ const Header = () => {
     return () => {
       document.removeEventListener("mousedown", handler);
     };
-  });
+  }, []);
 
   return (
     <>
-      <Navbar
-        menuRef={menuRef}
-        profileRef={profileRef}
-        onOpenSidebar={(open) => setOpenSidebar(open)}
-        onOpenSearch={(open) => setOpenSearch(open)}
-        openSearch={openSearch}
-        onOpenProfile={(open) => setOpenProfile(open)}
-        openProfile={openProfile}
-      />
-      <Sidebar sidebarRef={sidebarRef} openSidebar={openSidebar} />
+      <Navbar dispatch={(state) => dispatch(state)} state={state} />
+      <Sidebar state={state} />
+      <Profile state={state} session={session} />
+      <div
+        className={
+          state.openShadow
+            ? "fixed z-10 h-screen w-screen bg-black opacity-20"
+            : ""
+        }
+        ref={shadowRef}
+      ></div>
     </>
   );
 };
