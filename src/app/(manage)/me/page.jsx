@@ -4,7 +4,8 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ProfileUpdate } from "@services/userAPI";
+import { resizeImage } from "@utils/util";
+import { ProfileUpdate } from "@services/user";
 import { useRouter } from "next/navigation";
 import { BiImageAdd } from "react-icons/bi";
 import Header from "@components/Header/Header";
@@ -14,7 +15,7 @@ import SecondaryButton from "@components/Button/SecondaryButton";
 
 const Me = () => {
   const { push } = useRouter();
-  const { data: session, status } = useSession({ required: true });
+  const { data: session, status, update } = useSession({ required: true });
   const [chage, setChange] = useState(false);
   const [modal, setModal] = useState({
     state: true,
@@ -44,11 +45,28 @@ const Me = () => {
 
   const onSubmitHandler = async () => {
     const body = new FormData();
-    body.append("banner", image.banner);
-    body.append("avatar", image.avatar);
+    if (image.banner) {
+      const resizedBanner = await resizeImage(image.banner);
+      body.append("banner", resizedBanner);
+    }
+    if (image.avatar) {
+      const resizedAvt = await resizeImage(image.avatar);
+      body.append("image", resizedAvt);
+    }
     const newProfile = await ProfileUpdate({
       body,
     });
+
+    if (newProfile) {
+      alert("Đã cập nhật thành công");
+      await update();
+      setImage({ image: "", banner: "" });
+      setChange(false);
+    } else {
+      alert("Có lỗi xảy ra");
+      setImage({ image: "", banner: "" });
+      setChange(false);
+    }
   };
 
   const onCloseModal = (state, type, aspect) => {
@@ -61,6 +79,8 @@ const Me = () => {
     if (modal.type && modal.type === "avatar")
       setImage((pre) => ({ banner: pre.banner, avatar: image }));
   };
+
+  console.log(session);
 
   return (
     <>
@@ -99,10 +119,10 @@ const Me = () => {
               <BiImageAdd />
             </i>
             {!image.avatar ? (
-              session.user.avatar ? (
+              session.user.image ? (
                 <Image
-                  src={session.user.avatar}
-                  alt={`${session.user.avatar} Avatar`}
+                  src={session.user.image}
+                  alt={`${session.user.image} Avatar`}
                   priority
                   fill={true}
                   sizes="0%"
